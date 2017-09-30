@@ -1,0 +1,76 @@
+#!/bin/bash
+
+#OS Bash Shell Programming Assignment 2
+#Name: Ryan Monaghan
+#ID: R00115129
+#Class: IT2-A
+
+if ((${#}<2)) #if agruments is less than one, throw error message.
+	then
+		echo "${0}:ERROR: No arguments given." 1>&2 #redirect error message from channel 1, to channel 2.
+		echo "${0}:USAGE: <existing directory> followed by <destination directory>." 1>&2
+		exit 1 #force exit program.
+fi
+
+if test ! -d "${1}" #verify source directory exists.
+	then
+		echo "${0}:ERROR: Source directory '${1}' does not exist!" 1>&2
+		echo "${0}:USAGE: Enter a correct directory name." 1>&2
+		exit 2
+fi
+
+if test -d "${2}" #verify destination name is unique.
+	then
+		echo "${0}:ERROR: Destination directory '${2}' already exists!" !>&2
+		echo "${0}:USAGE: Enter a unique destination name." 1<&2
+		exit 3
+fi
+
+if test -e "${2}" #verify source destination name is not a pre-existing file.
+	then
+		echo "${0}:ERROR: '${2}' matches the name of an existing file!" 1>&2
+		echo "${0}:ERROR: Enter a unique name." 1>&2
+		exit 4
+fi
+
+mkdir ${2} #create destination directory.
+
+if test ! -d "${2}" #test if directory creation is successful.
+	then
+		echo " ${0}:ERROR: Directory '${2}' has not been created." #if directory creation fails
+		echo "${0}:USAGE: Please try again." 1>&2 #prompt user to try again
+		exit 5
+fi
+
+typeset -i cpFile #initialise variable for copied files
+typeset -i fcpFile #as well as files the fail cp operation.
+
+for file in $(ls "${1}") #for files located in the srcDir. 
+	do #do the following
+		if cp "${1}/${file}" "${2}" #copy ordinary files from srcDir, into dDir.
+	then
+		((cpFile++)) #for each sucessful file copied, increment cpFile counter by one. 
+	else
+		echo "${0}:ERROR: Copy operation failed for 1 or more files!" 1<&2 #otherwise, relay failed cp operation to user.
+		((fcpFile++)) #increment fail counter by one for each failed cp operation.
+		fi
+done #exit loop. 
+
+if test ${fcpFile} == 0 #if fcpFile counter contains a value of zero
+	then
+		echo "${0}:USAGE:  All "${cpFile}" files have been copied successfully!" 1>&2
+		exit 6
+fi
+
+if test ${fcpFile} != 0 #if fcpFile counter is NOT equal to zero 
+	then
+		echo "${0}:ERROR: "${fcpFile}" failed to be copied into "${2}"." 1>&2  #display the tally of failed files.
+		echo "${0}:WARNING: "${cpFile}" files were successfully copied, while "${fcpFile}" failed to be copied into "${2}"." #detail how many files were sucessfully copied, as well as how many failed.
+		exit 7
+fi
+
+if test ${cpFile} == 0 #if number of copied files IS EQUAL TO zero
+	then
+		echo "${0}:WARNING: NONE of the "${cpFile}" files were successfully copied." 1>&2 #inform the user all file copy operations have failed.
+		exit 8
+fi
